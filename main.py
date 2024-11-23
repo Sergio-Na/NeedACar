@@ -1,4 +1,4 @@
-# chat_application.py
+# main.py
 
 import os
 import pandas as pd
@@ -44,7 +44,9 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 system = (
     "You are a helpful assistant with access to a database of vehicle descriptions. "
     "Engage in a conversational manner, keeping track of the user's queries and your responses within the current session. "
-    "When answering follow-up questions, refer to previous exchanges to provide relevant context."
+    "When answering follow-up questions, refer to previous exchanges to provide relevant context. "
+    "If a new question is unrelated to previous conversations, disregard previous context. Always be clear and concise in your responses."
+    "If you encouter values that do not make sense (examples include: null values or prices that are $0) you can ignore them." 
 )
 
 human = (
@@ -67,12 +69,11 @@ df.to_sql('cars', conn, index=False, if_exists='replace')
 # Session memory
 conversation_history = []
 
-
 # Conversational loop
 def chat_with_user():
     print("Hello! Ask me anything about the vehicles database or type 'quit' to exit.")
 
-    # ex: "how me a car that is before 2015, less than 30'000$ and automatic transmission"
+    # ex: "show me a car that is before 2015, less than 30'000$ and automatic transmission"
     while True:
         user_input = input("\nYou: ").strip()
         if user_input.lower() in ["quit", "exit"]:
@@ -80,7 +81,21 @@ def chat_with_user():
             break
 
         try:
-            sql_query = generate_sql_from_input(user_input, sqlChat)
+            # Determine if the user query is a follow-up or a new query
+            is_follow_up = "follow-up" in user_input.lower() or (len(conversation_history) > 0 and not user_input.lower().startswith(('new', 'reset', 'start over')))
+            session_context = ""
+            enriched_user_input = user_input
+
+            if is_follow_up:
+                # Include the last 6 queries and responses for context
+                session_context = "\n".join(
+                    f"User: {entry['query']}\nAssistant: {entry['response']}"
+                    for entry in conversation_history[-6:]
+                )
+                enriched_user_input = f"{session_context}\nUser: {user_input}"
+
+            sql_query = generate_sql_from_input(enriched_user_input, sqlChat)
+
             print("Query is: ", sql_query)
 
             filtered_df = pd.read_sql_query(sql_query.content, conn)
@@ -89,7 +104,9 @@ def chat_with_user():
             vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
 
             # Perform similarity search (limit results to k=3)
-            search_results = vectorstore.similarity_search(user_input, k=3)
+            # Include session context in the similarity search to provide more context-aware results
+            enriched_query = enriched_user_input if is_follow_up else user_input
+            search_results = vectorstore.similarity_search(enriched_query, k=3)
 
             # Format results for the assistant
             formatted_results = "\n".join(
@@ -97,15 +114,9 @@ def chat_with_user():
                 for i, result in enumerate(search_results)
             )
 
-            # Include the last 6 queries and responses for context
-            session_context = "\n".join(
-                f"User: {entry['query']}\nAssistant: {entry['response']}"
-                for entry in conversation_history[-6:]  # Limit to the last 6
-            )
-
             # Get response from the assistant
             response = chain.invoke({
-                "query": f"{session_context}\nUser: {user_input}",
+                "query": enriched_user_input,
                 "results": formatted_results
             })
 
@@ -117,9 +128,7 @@ def chat_with_user():
 
             print(f"\nAssistant: {response.content}")
         except Exception as e:
-            raise e
             print(f"Error: {e}")
 
 if __name__ == "__main__":
     chat_with_user()
-
