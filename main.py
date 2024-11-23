@@ -1,24 +1,29 @@
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+# chat_application.py
+
 import os
+import pandas as pd
 from dotenv import load_dotenv
+import textwrap
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-import textwrap
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+
+# Ensure parallelism is disabled for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Load environment variables
 load_dotenv()
 
-# Load FAISS vector store with safe deserialization
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+# Load FAISS vector store with the updated embeddings
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 vectorstore = FAISS.load_local("faiss_vehicle_index", embeddings, allow_dangerous_deserialization=True)
 
 # Initialize Groq chat model
 chat = ChatGroq(
     temperature=0,
     groq_api_key=os.getenv("GROQ_API_KEY"),
-    model_name="mixtral-8x7b-32768"
+    model_name="llama-3.2-90b-vision-preview"
 )
 
 # Define system and human messages
@@ -49,19 +54,18 @@ def chat_with_user():
         if user_input.lower() in ["quit", "exit"]:
             print("Goodbye!")
             break
-        
+
         try:
             # Perform similarity search (limit results to k=3)
             search_results = vectorstore.similarity_search(user_input, k=3)
-            
-            # Format results for the Groq model
+
+            # Format results for the assistant
             formatted_results = "\n".join(
-                f"{i+1}. {textwrap.shorten(result.page_content, width=150, placeholder='...')} | "
-                f"Metadata: {result.metadata}"
+                f"{i+1}. {result.page_content}"
                 for i, result in enumerate(search_results)
             )
-            
-            # Get response from Groq model
+
+            # Get response from the assistant
             response = chain.invoke({"query": user_input, "results": formatted_results})
             print(f"\nAssistant: {response.content}")
         except Exception as e:
