@@ -11,6 +11,7 @@ from langchain_community.vectorstores import FAISS
 import textwrap
 from inputSql import generate_sql_from_input
 import pandas as pd
+import sqlite3
 
 # Ensure parallelism is disabled for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -60,7 +61,7 @@ prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)]
 chain = prompt | chat
 
 # Load the data
-df = pd.read_csv('test.csv')
+df = pd.read_csv('vehicles.csv')
 conn = sqlite3.connect(':memory:')
 df.to_sql('cars', conn, index=False, if_exists='replace')
 
