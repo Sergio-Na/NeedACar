@@ -43,15 +43,15 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 # Define system and human messages
 system = (
     "You are a helpful assistant with access to a database of vehicle descriptions. "
-    "When given a user query and a list of relevant matches, analyze the matches and provide a detailed yet concise response. "
-    "Use the information from the matches to directly address the user's query, highlighting only the most relevant details."
+    "Engage in a conversational manner, keeping track of the user's queries and your responses within the current session. "
+    "When answering follow-up questions, refer to previous exchanges to provide relevant context."
 )
 
 human = (
     "User query: '{query}'.\n"
     "Relevant matches from the database:\n"
     "{results}\n"
-    "Based on the matches, provide a conversational response addressing the user's query explicitly."
+    "Use the matches to provide a conversational and context-aware response to the user."
 )
 
 # Create a prompt template
@@ -64,6 +64,9 @@ chain = prompt | chat
 df = pd.read_csv('vehicles.csv')
 conn = sqlite3.connect(':memory:')
 df.to_sql('cars', conn, index=False, if_exists='replace')
+# Session memory
+conversation_history = []
+
 
 # Conversational loop
 def chat_with_user():
@@ -94,8 +97,24 @@ def chat_with_user():
                 for i, result in enumerate(search_results)
             )
 
+            # Include previous queries and responses for context
+            session_context = "\n".join(
+                f"User: {entry['query']}\nAssistant: {entry['response']}"
+                for entry in conversation_history
+            )
+
             # Get response from the assistant
-            response = chain.invoke({"query": user_input, "results": formatted_results})
+            response = chain.invoke({
+                "query": f"{session_context}\nUser: {user_input}",
+                "results": formatted_results
+            })
+
+            # Save the current query and response to session history
+            conversation_history.append({
+                "query": user_input,
+                "response": response.content
+            })
+
             print(f"\nAssistant: {response.content}")
         except Exception as e:
             raise e
