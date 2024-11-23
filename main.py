@@ -97,10 +97,10 @@ def chat_with_user():
                 for i, result in enumerate(search_results)
             )
 
-            # Include previous queries and responses for context
+            # Include the last 6 queries and responses for context
             session_context = "\n".join(
                 f"User: {entry['query']}\nAssistant: {entry['response']}"
-                for entry in conversation_history
+                for entry in conversation_history[-6:]  # Limit to the last 6
             )
 
             # Get response from the assistant
@@ -122,3 +122,4 @@ def chat_with_user():
 
 if __name__ == "__main__":
     chat_with_user()
+
