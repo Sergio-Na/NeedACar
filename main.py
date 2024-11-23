@@ -1,14 +1,23 @@
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+# main.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+import textwrap
+
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-import textwrap
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all domains on all routes
 
 # Load FAISS vector store with safe deserialization
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -41,31 +50,32 @@ prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)]
 # Define the chain by combining the prompt with the chat model
 chain = prompt | chat
 
-# Conversational loop
-def chat_with_user():
-    print("Hello! Ask me anything about the vehicles database or type 'quit' to exit.")
-    while True:
-        user_input = input("\nYou: ").strip()
-        if user_input.lower() in ["quit", "exit"]:
-            print("Goodbye!")
-            break
-        
-        try:
-            # Perform similarity search (limit results to k=3)
-            search_results = vectorstore.similarity_search(user_input, k=3)
-            
-            # Format results for the Groq model
-            formatted_results = "\n".join(
-                f"{i+1}. {textwrap.shorten(result.page_content, width=150, placeholder='...')} | "
-                f"Metadata: {result.metadata}"
-                for i, result in enumerate(search_results)
-            )
-            
-            # Get response from Groq model
-            response = chain.invoke({"query": user_input, "results": formatted_results})
-            print(f"\nAssistant: {response.content}")
-        except Exception as e:
-            print(f"Error: {e}")
+@app.route('/api/chat', methods=['POST'])
+def chat_endpoint():
+    data = request.get_json()
+    user_input = data.get('message', '').strip()
+    if not user_input:
+        return jsonify({'error': 'No message provided.'}), 400
+
+    try:
+        # Perform similarity search (limit results to k=3)
+        search_results = vectorstore.similarity_search(user_input, k=3)
+
+        # Format results for the Groq model
+        formatted_results = "\n".join(
+            f"{i+1}. {textwrap.shorten(result.page_content, width=150, placeholder='...')} | "
+            f"Metadata: {result.metadata}"
+            for i, result in enumerate(search_results)
+        )
+
+        # Get response from Groq model
+        response = chain.invoke({"query": user_input, "results": formatted_results})
+        assistant_response = response.content
+
+        return jsonify({'response': assistant_response})
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    chat_with_user()
+    app.run(host='0.0.0.0', port=5000)
