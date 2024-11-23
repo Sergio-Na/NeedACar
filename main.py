@@ -34,7 +34,7 @@ chat = ChatGroq(
 sqlChat = ChatGroq(
     temperature=0,
     groq_api_key=os.getenv("GROQ_API_KEY"),
-    model_name="mixtral-8x7b-32768",
+    model_name="llama-3.2-90b-vision-preview",
 )
 
 # Initialize the embedding model
@@ -78,6 +78,7 @@ def chat_with_user():
 
         try:
             sql_query = generate_sql_from_input(user_input, sqlChat)
+            print("Query is: ", sql_query)
 
             filtered_df = pd.read_sql_query(sql_query.content, conn)
             texts = filtered_df["description"].tolist()
