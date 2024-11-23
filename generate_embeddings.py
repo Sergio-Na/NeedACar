@@ -1,5 +1,3 @@
-# embeddings_generation.py
-
 import pandas as pd
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -39,11 +37,15 @@ def create_detailed_description(row):
     else:
         price_label = "premium price"
 
+    # Handle possible None values for engine displacement and cylinders
+    engine_displacement = f"{row['EngineDisplacement']}L" if pd.notnull(row['EngineDisplacement']) else "N/A"
+    engine_cylinders = f"{row['EngineCylinders']}-cylinder engine" if pd.notnull(row['EngineCylinders']) else "engine"
+
     # Create a detailed description
     description = (
         f"{row['Year']} {row['Make']} {row['Model']} ({row['Body']}) with {mileage_label}\n"
         f"Exterior Color: {row['ExteriorColor']} | Interior Color: {row['InteriorColor']}\n"
-        f"{row['EngineDisplacement']}L {row['EngineCylinders']}-cylinder engine | {row['Transmission']} transmission\n"
+        f"{engine_displacement} {engine_cylinders} | {row['Transmission']} transmission\n"
         f"Drivetrain: {row['Drivetrain']} | Fuel Type: {row['Fuel_Type']}\n"
         f"Fuel Efficiency: {fuel_efficiency} ({efficiency_label})\n"
         f"Passenger Capacity: {row['PassengerCapacity']} | Selling Price: ${row['SellingPrice']} ({price_label})\n"
@@ -51,18 +53,21 @@ def create_detailed_description(row):
     )
     return description
 
-# Apply the updated description function
+# Apply the description function to each row and add it as a new column
 df["description"] = df.apply(create_detailed_description, axis=1)
+
+# Save the updated DataFrame back to the CSV (including the 'description' column)
+df.to_csv(csv_file, index=False)
 
 # Initialize the embedding model with a more powerful model
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
-# Generate embeddings for the new descriptions
+# Generate embeddings for the descriptions
 texts = df["description"].tolist()
 metadata = df.drop(columns=["description"]).to_dict(orient="records")
 ids = df.index.astype(str).tolist()
 
-# Create the vector store with the new embeddings
+# Create the vector store with the embeddings
 vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata, ids=ids)
 
 # Save the updated vector store for persistence
