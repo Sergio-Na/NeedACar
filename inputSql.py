@@ -49,12 +49,12 @@ def determine_possible_values(quant_columns):
 
 examples = [
     {
-        "criteria": "Year > 2020 AND Price < 50000 AND Color = 'Red'",
-        "sql": "SELECT * FROM cars WHERE Year > 2020 AND Price < 50000 AND Color = 'Red';"
+        "criteria": "Year > 2020 AND Price < 50000",
+        "sql": "SELECT * FROM cars WHERE Year > 2020 AND SellingPrice < 50000;"
     },
     {
         "criteria": "Transmission = 'Automatic' AND Mileage < 100000",
-        "sql": "SELECT * FROM cars WHERE Transmission = 'Automatic' AND Mileage < 100000;"
+        "sql": "SELECT * FROM cars WHERE Transmission = 'Automatic' AND Miles < 100000;"
     }
 ]
 
@@ -69,7 +69,7 @@ prompt = FewShotPromptTemplate(
         example_prompt=example_template,
         prefix=f"\
                 The user is conversing with a chatbot in search of a car. \
-                Use the input string to generate a SQL query that will retrieve * of the `cars` table.\
+                Use the input string to generate a SQL query that will select every column of the `cars` table.\
                 Only generate the SQL query with no other text around it so that it can be used in SQL directly.\
                 Be very conservative and only use columns that are in the possible values dictionary.\
                 This is the dictionary of possible columns and values in the SQL table: {json.dumps(possible_values)}".replace('{', '{{').replace('}', '}}'),
