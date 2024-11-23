@@ -1,0 +1,12 @@
+/* src/index.css */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10;
+}
+
+body {
+  font-family: 'SFPro', sans-serif;
+  background-color: #0d0f22;
+}

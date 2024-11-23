@@ -1,0 +1,143 @@
+/* src/components/ChatSidebar.css */
+
+.chat-sidebar {
+    width: 300px;
+    background-color: #4B0082; /* Dark Purple */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    box-sizing: border-box;
+    height: 100vh;
+    overflow-y: auto;
+    transition: width 0.3s ease;
+    border-right: 1px solid #2E3A59; /* Subtle border for separation */
+}
+
+.chat-sidebar.collapsed {
+    width: 60px;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+}
+
+.toggle-button {
+    color: white;
+}
+
+.sidebar-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-left: 10px;
+    font-family: 'SFPro', sans-serif;
+}
+
+.chat-sidebar.collapsed .sidebar-title {
+    display: none;
+}
+
+.new-chat-button {
+    width: 100%;
+    margin-bottom: 15px;
+    background-color: #8f44fd;
+    color: #ffffff;
+    text-transform: none;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'SFPro', sans-serif;
+    transition: background-color 0.3s;
+}
+
+.new-chat-button:hover {
+    background-color: #7c3ce8;
+}
+
+.chat-sidebar.collapsed .new-chat-button {
+    display: none;
+    margin: 0;
+    padding: 0;
+}
+
+.list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 15px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+    margin-bottom: 5px;
+    color: #e0e0e0;
+}
+.chat-sidebar.collapsed .sidebar-item {
+    display: none;
+    margin: 0;
+    padding: 0;
+}
+.sidebar-item:hover {
+    background-color: #6a11cb;
+    color: #ffffff;
+}
+
+.sidebar-item.active {
+    background-color: #6a11cb;
+    color: #ffffff;
+}
+
+.sidebar-item.active:hover {
+    background-color: #5e0fb0;
+}
+
+.sidebar-item-text {
+    color: #ffffff;
+    font-family: 'SFPro', sans-serif;
+}
+
+.secondary-text {
+    color: #a0a0a0;
+    font-size: 0.8rem;
+}
+
+.sidebar-item.active .secondary-text {
+    color: #ffffff;
+}
+
+.delete-button {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.sidebar-item:hover .delete-button {
+    opacity: 1;
+    color: #ff6666;
+}
+
+.delete-button:hover {
+    color: #ff6666;
+}
+
+.chat-sidebar.collapsed .sidebar-item .MuiListItemText,
+.chat-sidebar.collapsed .delete-button {
+    display: none;
+}
+
+.chat-sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding: 15px 0;
+}
+
+.chat-sidebar.collapsed .sidebar-item:hover .delete-button {
+    opacity: 0;
+}

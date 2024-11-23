@@ -1,0 +1,74 @@
+/* src/components/ChatBubble.css */
+
+.chat-bubble-container {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: flex-start;
+}
+
+.user-container {
+    /* justify-content: flex-end; */
+    flex-direction: row-reverse;
+}
+
+.bot-container {
+    justify-content: flex-start;
+    flex-direction: row;
+}
+
+.chat-bubble {
+    max-width: 60%;
+    padding: 15px;
+    border-radius: 15px;
+    position: relative;
+    line-height: 1.6;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-bubble {
+    background-color: #4CAF50; /* Green for user messages */
+    color: white;
+    align-self: flex-end;
+}
+
+.bot-bubble {
+    background-color: #f1f1f1; /* Light grey for bot messages */
+    color: #000;
+    align-self: flex-start;
+}
+
+.chat-text {
+    font-size: 1rem;
+    padding: 5px 0;
+}
+
+.chat-image {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.action-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #6a11cb;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.action-button:hover {
+    background-color: #5e0fb0;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}

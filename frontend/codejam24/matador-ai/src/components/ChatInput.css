@@ -1,0 +1,61 @@
+/* src/components/ChatInput.css */
+
+.chat-input-container {
+    display: flex;
+    padding: 15px;
+    background: #1e2251; /* Dark Purple */
+    gap: 10px;
+    flex-shrink: 0;
+    /* Removed fixed positioning to prevent overlapping with the sidebar */
+    /* position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000; */
+    box-sizing: border-box;
+    /* Ensure the input container is part of the flex column */
+}
+
+.chat-input {
+    flex: 1;
+    padding: 10px 15px;
+    border-radius: 25px;
+    background: #292d48;
+    color: #ffffff;
+    font-size: 1rem;
+    border: 1px solid #44476a;
+    font-family: 'SFPro', sans-serif;
+}
+
+.chat-input::placeholder {
+    color: #b0b0b0;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #6a11cb;
+    box-shadow: 0 0 5px rgba(106, 17, 203, 0.5);
+}
+
+.send-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.send-button:hover {
+    background: linear-gradient(90deg, #5e0fb0, #1f64d0);
+}
+
+.send-button svg {
+    width: 24px;
+    height: 24px;
+}
