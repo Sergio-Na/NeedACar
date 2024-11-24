@@ -186,5 +186,4 @@ prof
 virtualenv/
 
 vehicles.json
-vehicles.csv
 faiss_vehicle_index
