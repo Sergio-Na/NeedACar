@@ -126,7 +126,8 @@ const ChatBot = () => {
     setCurrentConversationId(id);
   };
 
-  const handleNewConversation = () => {
+  const handleNewConversation = async () => {
+    await axios.delete('http://localhost:8000/api/chat')
     const newConv = {
       id: Date.now(),
       title: 'New Conversation',
@@ -139,7 +140,8 @@ const ChatBot = () => {
     setCurrentConversationId(newConv.id);
   };
 
-  const handleDeleteConversation = (id) => {
+  const handleDeleteConversation = async (id) => {
+    await axios.delete('http://localhost:8000/api/chat')
     const confirmed = window.confirm(
       'Are you sure you want to delete this conversation?'
     );

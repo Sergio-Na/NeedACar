@@ -88,6 +88,11 @@ def sanitize_metadata(metadata):
         return None  # Replace NaN with None (null in JSON)
     return metadata
 
+@app.route('/api/chat', methods=['DELETE'])
+def reset_chat():
+    conversation_history.clear()
+    return jsonify({'status': 'success'})
+
 @app.route('/api/chat', methods=['POST'])
 def chat_endpoint():
     data = request.get_json()
