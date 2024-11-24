@@ -18,7 +18,7 @@ const CarCard = ({ car, position, onMoreClick }) => {
 
     return (
         <Card sx={{ maxWidth: 345, minWidth: 250 }} style={{
-            padding: 5, width: 250, height: 290,
+            padding: 5, width: 250, height: 310,
             transform: position === 'middle' ? "scale(1)" : position === 'left' ? "scale(0.8) translate(-80%)" : "scale(0.8) translate(80%)",
             zIndex: position === 'middle' ? 3 : 0,
             opacity: position === 'middle' ? 1 : position === 'hide' ? 0 : 0.8,
