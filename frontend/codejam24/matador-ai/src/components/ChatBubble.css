@@ -17,7 +17,7 @@
 }
 
 .chat-bubble {
-    max-width: 60%;
+    max-width: 80%;
     padding: 15px;
     border-radius: 15px;
     position: relative;
@@ -28,13 +28,15 @@
 }
 
 .user-bubble {
-    background-color: #4CAF50; /* Green for user messages */
+    background-color: #4CAF50;
+    /* Green for user messages */
     color: white;
     align-self: flex-end;
 }
 
 .bot-bubble {
-    background-color: #f1f1f1; /* Light grey for bot messages */
+    background-color: #f1f1f1;
+    /* Light grey for bot messages */
     color: #000;
     align-self: flex-start;
 }

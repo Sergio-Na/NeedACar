@@ -2,10 +2,13 @@
 import React from 'react';
 import { Card } from '@mui/material';
 import Markdown from 'markdown-to-jsx';
+import CarCard from './CarCard';
+import CarCarousel from './CarCarousel';
+import Swiper from './Swiper';
 import './ChatBubble.css';
 import botAvatar from '../components/download.png'; // Ensure botAvatar.png is in src/assets/
 
-const ChatBubble = ({ sender, text, image, actions }) => {
+const ChatBubble = ({ sender, text, image, actions, cars }) => {
   const handleActionClick = (action) => {
     // Implement action handling logic here
     console.log(`Action clicked: ${action.type}`);
@@ -29,7 +32,6 @@ const ChatBubble = ({ sender, text, image, actions }) => {
             <Markdown>{text}</Markdown>
           </div>
         )}
-        {image && <img src={image} alt="Content" className="chat-image" />}
         {actions &&
           actions.map((action, index) => (
             <button
@@ -40,6 +42,8 @@ const ChatBubble = ({ sender, text, image, actions }) => {
               {action.label}
             </button>
           ))}
+        {/* <CarCarousel cars={cars} /> */}
+        <Swiper cars={cars} />
       </Card>
     </div>
   );
