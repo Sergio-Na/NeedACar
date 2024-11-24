@@ -17,25 +17,13 @@ const CarCard = ({ car, position, onMoreClick }) => {
     }).format(car.SellingPrice);
 
     return (
-        <Card
-            sx={{ maxWidth: 345, minWidth: 250 }}
-            style={{
-                padding: 5,
-                width: 250,
-                height: 290,
-                transform:
-                    position === 'middle'
-                        ? 'scale(1)'
-                        : position === 'left'
-                        ? 'scale(0.8) translate(80%)'
-                        : 'scale(0.8) translate(-80%)',
-                zIndex: position === 'middle' ? 3 : 0,
-                opacity: position === 'middle' ? 1 : 0.8,
-                transition: 'transform 0.3s ease',
-                position: 'absolute',
-            }}
-            // Removed onClick from the entire card
-        >
+        <Card sx={{ maxWidth: 345, minWidth: 250 }} style={{
+            padding: 5, width: 250, height: 290,
+            transform: position === 'middle' ? "scale(1)" : position === 'left' ? "scale(0.8) translate(-80%)" : "scale(0.8) translate(80%)",
+            zIndex: position === 'middle' ? 3 : 0,
+            opacity: position === 'middle' ? 1 : position === 'hide' ? 0 : 0.8,
+            transition: "transform 0.3s ease", position: 'absolute',
+        }}>
             <CardMedia
                 sx={{ height: 140 }}
                 image={car.ImageURL || '/car.jpeg'} // Use dynamic image if available

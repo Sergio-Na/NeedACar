@@ -27,6 +27,16 @@ const CarCarousel = ({ cars }) => {
     },
     [cars.length] // Dependency array
   );
+  const dist = (key) => {
+    const diff = currentKey - key;
+    if (diff === 0) {
+      return 'middle'
+    } else if (diff === -1) {
+      return 'right'
+    } else if (diff === 1) {
+      return 'left'
+    }
+  }
 
   const handleMoreClick = (car) => {
     setSelectedCar(car);
@@ -49,54 +59,32 @@ const CarCarousel = ({ cars }) => {
   }, [handleSlide]); // Added handleSlide to dependencies
 
   return (
-    <>
-      <div className="carousel-container" role="region" aria-label="Car Recommendations Carousel">
-        {/* Radio Buttons (if needed for additional functionality) */}
-        <input type="radio" name="slider" id="item-1" defaultChecked />
-        <input type="radio" name="slider" id="item-2" />
-        <input type="radio" name="slider" id="item-3" />
+    <><div className="carousel-container" role="region" aria-label="Car Recommendations Carousel" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingLeft: 20, paddingRight: 20 }}>
+      {/* Previous Button */}
+      <label
+        htmlFor="prev"
+        className="prev"
+        aria-label="Previous Slide"
+        onClick={() => handleSlide(false)}
+      >
+        &#10094;
+      </label>
 
-        {/* Carousel Cards */}
-        <div className="cards" style={{ height: 350, display: 'flex', flexGrow: 1 }}>
-          {cars.map((car, index) => (
-            <CarCard
-              key={'car-' + index}
-              car={car}
-              position={
-                currentKey === index
-                  ? 'middle'
-                  : currentKey > index
-                  ? 'left'
-                  : 'right'
-              }
-              onMoreClick={handleMoreClick} // Pass the handler
-            />
-          ))}
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="carousel-navigation">
-          {/* Previous Button */}
-          <label
-            htmlFor="prev"
-            className="prev"
-            aria-label="Previous Slide"
-            onClick={() => handleSlide(false)}
-          >
-            &#10094;
-          </label>
-          {/* Next Button */}
-          <label
-            htmlFor="next"
-            className="next"
-            aria-label="Next Slide"
-            onClick={() => handleSlide(true)}
-          >
-            &#10095;
-          </label>
-        </div>
+      {/* Carousel Cards */}
+      <div className="cards" style={{ height: 350, display: 'flex', flexGrow: 1 }}>
+        {cars.map((car, index) => <CarCard key={'car-' + index} car={car} position={dist(index)} onMoreClick={handleMoreClick} />)}
       </div>
 
+      {/* Next Button */}
+      <label
+        htmlFor="next"
+        className="next"
+        aria-label="Next Slide"
+        onClick={() => handleSlide(true)}
+      >
+        &#10095;
+      </label>
+    </div>
       {/* Modal Popup */}
       <Dialog
         open={open}
@@ -148,8 +136,7 @@ const CarCarousel = ({ cars }) => {
             </DialogContent>
           </>
         )}
-      </Dialog>
-    </>
+      </Dialog></>
   );
 };
 

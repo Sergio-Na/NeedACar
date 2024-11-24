@@ -40,7 +40,9 @@ const ChatBubble = ({ sender, text, image, actions, cars }) => {
               {action.label}
             </button>
           ))}
-        <CarCarousel cars={cars} />
+        {
+          cars && cars.length > 0 && <CarCarousel cars={cars} />
+        }
       </Card>
     </div>
   );
