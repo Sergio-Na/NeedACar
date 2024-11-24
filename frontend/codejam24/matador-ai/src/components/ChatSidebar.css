@@ -80,12 +80,15 @@
     transition: background 0.3s, color 0.3s;
     margin-bottom: 5px;
     color: #e0e0e0;
+    position: relative; /* For positioning the delete button */
 }
+
 .chat-sidebar.collapsed .sidebar-item {
     display: none;
     margin: 0;
     padding: 0;
 }
+
 .sidebar-item:hover {
     background-color: #6a11cb;
     color: #ffffff;
@@ -103,6 +106,11 @@
 .sidebar-item-text {
     color: #ffffff;
     font-family: 'SFPro', sans-serif;
+    /* Truncate text with ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Adjust based on sidebar width */
 }
 
 .secondary-text {
@@ -117,6 +125,7 @@
 .delete-button {
     opacity: 0;
     transition: opacity 0.3s;
+    margin-left: auto; /* Push delete button to the end */
 }
 
 .sidebar-item:hover .delete-button {
@@ -132,12 +141,7 @@
 .chat-sidebar.collapsed .delete-button {
     display: none;
 }
-
-.chat-sidebar.collapsed .sidebar-item {
-    justify-content: center;
-    padding: 15px 0;
-}
-
-.chat-sidebar.collapsed .sidebar-item:hover .delete-button {
-    opacity: 0;
+/* Override the SVG fill color for the toggle button to white */
+.toggle-button svg {
+    fill: white;
 }

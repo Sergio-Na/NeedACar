@@ -1,65 +1,155 @@
 // src/components/CarCarousel.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './CarCarousel.css';
 import CarCard from './CarCard';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 const CarCarousel = ({ cars }) => {
   const [currentKey, setCurrentKey] = useState(0);
+  const [open, setOpen] = useState(false); // State to manage modal open
+  const [selectedCar, setSelectedCar] = useState(null); // State to store selected car
 
-  const handleSlide = (inc) => {
-    if (inc) {
-      if (currentKey === cars.length - 1) {
-        setCurrentKey(0)
-      } else {
-        setCurrentKey(currentKey + 1)
-      }
-    } else {
-      if (currentKey === 0) {
-        setCurrentKey(cars.length - 1)
-      } else {
-        setCurrentKey(currentKey - 1)
-      }
-    }
+  // Memoized handleSlide function
+  const handleSlide = useCallback(
+    (inc) => {
+      setCurrentKey((prevKey) => {
+        if (inc) {
+          return prevKey === cars.length - 1 ? 0 : prevKey + 1;
+        } else {
+          return prevKey === 0 ? cars.length - 1 : prevKey - 1;
+        }
+      });
+    },
+    [cars.length] // Dependency array
+  );
 
-  }
+  const handleMoreClick = (car) => {
+    setSelectedCar(car);
+    setOpen(true);
+  };
 
-  console.log('key', currentKey)
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedCar(null);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleSlide(true);
+    }, 7000); // 7 seconds interval
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [handleSlide]); // Added handleSlide to dependencies
 
   return (
-    <div className="carousel-container" role="region" aria-label="Car Recommendations Carousel">
-      {/* Radio Buttons */}
-      <input type="radio" name="slider" id="item-1" defaultChecked />
-      <input type="radio" name="slider" id="item-2" />
-      <input type="radio" name="slider" id="item-3" />
+    <>
+      <div className="carousel-container" role="region" aria-label="Car Recommendations Carousel">
+        {/* Radio Buttons (if needed for additional functionality) */}
+        <input type="radio" name="slider" id="item-1" defaultChecked />
+        <input type="radio" name="slider" id="item-2" />
+        <input type="radio" name="slider" id="item-3" />
 
-      {/* Carousel Cards */}
-      <div className="cards" style={{ height: 350, display: 'flex', flexGrow: 1 }}>
-        {cars.map((car, index) => <CarCard key={'car-' + index} car={car} position={currentKey - index === 0 ? 'middle' : currentKey - index < 0 ? 'right' : 'left'} />)}
+        {/* Carousel Cards */}
+        <div className="cards" style={{ height: 350, display: 'flex', flexGrow: 1 }}>
+          {cars.map((car, index) => (
+            <CarCard
+              key={'car-' + index}
+              car={car}
+              position={
+                currentKey === index
+                  ? 'middle'
+                  : currentKey > index
+                  ? 'left'
+                  : 'right'
+              }
+              onMoreClick={handleMoreClick} // Pass the handler
+            />
+          ))}
+        </div>
 
+        {/* Navigation Buttons */}
+        <div className="carousel-navigation">
+          {/* Previous Button */}
+          <label
+            htmlFor="prev"
+            className="prev"
+            aria-label="Previous Slide"
+            onClick={() => handleSlide(false)}
+          >
+            &#10094;
+          </label>
+          {/* Next Button */}
+          <label
+            htmlFor="next"
+            className="next"
+            aria-label="Next Slide"
+            onClick={() => handleSlide(true)}
+          >
+            &#10095;
+          </label>
+        </div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="carousel-navigation">
-        {/* Previous Button */}
-        <label
-          htmlFor="prev"
-          className="prev"
-          aria-label="Previous Slide"
-          onClick={() => handleSlide(false)}
-        >
-          &#10094;
-        </label>
-        {/* Next Button */}
-        <label
-          htmlFor="next"
-          className="next"
-          aria-label="Next Slide"
-          onClick={() => handleSlide(true)}
-        >
-          &#10095;
-        </label>
-      </div>
-    </div>
+      {/* Modal Popup */}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="car-details-dialog-title"
+        fullWidth
+        maxWidth="md"
+      >
+        {selectedCar && (
+          <>
+            <DialogTitle id="car-details-dialog-title">
+              {selectedCar.Make} {selectedCar.Model}
+            </DialogTitle>
+            <DialogContent dividers>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <img
+                    src={selectedCar.ImageURL || '/car.jpeg'} // Use dynamic image if available
+                    alt={`${selectedCar.Make} ${selectedCar.Model}`}
+                    style={{ width: '100%', borderRadius: '8px' }}
+                    loading="lazy"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" gutterBottom>
+                    Details
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Type:</strong> {selectedCar.Type}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Drivetrain:</strong> {selectedCar.Drivetrain}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Price:</strong> $
+                    {selectedCar.SellingPrice.toLocaleString('en-US')}
+                  </Typography>
+                  {/* Add more details as needed */}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ marginTop: '20px' }}
+                    onClick={handleClose}
+                  >
+                    Close
+                  </Button>
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
+    </>
   );
 };
 

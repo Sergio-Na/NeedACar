@@ -21,6 +21,12 @@ const ChatSidebar = ({
   isOpen,
   onToggleSidebar,
 }) => {
+  // Utility function to truncate text
+  const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+  };
+
   return (
     <div className={`chat-sidebar ${isOpen ? '' : 'collapsed'}`}>
       <div className="sidebar-header">
@@ -41,58 +47,73 @@ const ChatSidebar = ({
             + New Chat
           </Button>
           <List>
-            {conversations.map((conv) => (
-              <ListItem
-                button
-                key={conv.id}
-                selected={conv.id === currentConversationId}
-                className={`sidebar-item ${
-                  conv.id === currentConversationId ? 'active' : ''
-                }`}
-                onClick={() => onSelectConversation(conv.id)}
-                aria-label={`Conversation on ${new Date(conv.lastUpdated).toLocaleDateString('en-CA')}`}
-              >
-                <ListItemText
-                  primary={
-                    <div className="sidebar-item-text">
-                      {new Date(conv.lastUpdated).toLocaleDateString('en-CA')}
-                    </div>
-                  }
-                />
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  className="delete-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteConversation(conv.id);
-                  }}
+            {conversations.map((conv) => {
+              // Extract the title or fallback to a default
+              const conversationTitle = truncateText(conv.title || 'New Conversation', 30);
+
+              return (
+                <ListItem
+                  button
+                  key={conv.id}
+                  selected={conv.id === currentConversationId}
+                  className={`sidebar-item ${
+                    conv.id === currentConversationId ? 'active' : ''
+                  }`}
+                  onClick={() => onSelectConversation(conv.id)}
+                  aria-label={`Conversation: ${conv.title || 'New Conversation'}`}
                 >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItem>
-            ))}
+                  <ListItemText
+                    primary={
+                      <div className="sidebar-item-text" title={conv.title || 'New Conversation'}>
+                        {conversationTitle}
+                      </div>
+                    }
+                  />
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the conversation select
+                      onDeleteConversation(conv.id);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItem>
+              );
+            })}
           </List>
         </>
       ) : (
         <List>
-          {conversations.map((conv) => (
-            <Tooltip title={new Date(conv.lastUpdated).toLocaleDateString('en-CA')} placement="right" key={conv.id}>
-              <ListItem
-                button
-                className={`sidebar-item ${
-                  conv.id === currentConversationId ? 'active' : ''
-                }`}
-                onClick={() => onSelectConversation(conv.id)}
-                aria-label={`Conversation on ${new Date(conv.lastUpdated).toLocaleDateString('en-CA')}`}
+          {conversations.map((conv) => {
+            // Extract the first character of the title for collapsed view
+            const firstChar = conv.title ? conv.title.charAt(0).toUpperCase() : 'C';
+
+            return (
+              <Tooltip
+                key={conv.id}
+                title={conv.title || 'New Conversation'}
+                placement="right"
+                arrow
               >
-                {/* Display the first character of the date as a placeholder */}
-                <div className="sidebar-item-text">
-                  {new Date(conv.lastUpdated).toLocaleDateString('en-CA').charAt(0)}
-                </div>
-              </ListItem>
-            </Tooltip>
-          ))}
+                <ListItem
+                  button
+                  className={`sidebar-item ${
+                    conv.id === currentConversationId ? 'active' : ''
+                  }`}
+                  onClick={() => onSelectConversation(conv.id)}
+                  aria-label={`Conversation: ${conv.title || 'New Conversation'}`}
+                >
+                  {/* Display the first character as a placeholder */}
+                  <div className="sidebar-item-text">
+                    {firstChar}
+                  </div>
+                </ListItem>
+              </Tooltip>
+            );
+          })}
         </List>
       )}
     </div>
