@@ -72,6 +72,7 @@ prompt = FewShotPromptTemplate(
                 Use the input string to generate a SQL query that will select every column of the `cars` table.\
                 Only generate the SQL query with no other text around it so that it can be used in SQL directly.\
                 Be very conservative and only use columns that are in the possible values dictionary.\
+                If the query talks about colour you can ignore it.\
                 Only generate a single SQL query.\
                 This is the dictionary of possible columns and values in the SQL table: {json.dumps(possible_values)}".replace('{', '{{').replace('}', '}}'),
         suffix="Criteria: {criteria}\nSQL:",

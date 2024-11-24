@@ -1,3 +1,4 @@
+# main.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -47,10 +48,11 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 system = (
     "You are a helpful assistant with access to a database of vehicle descriptions. "
     "Engage in a conversational manner, keeping track of the user's queries and your responses within the current session. "
+    "You can ask follow up questions to the user in order to further refine the search. "
     "When answering follow-up questions, refer to previous exchanges to provide relevant context. "
+    "In your responses do not include vehicles you decided to exclude. "
     "If a new question is unrelated to previous conversations, disregard previous context. Always be clear and concise in your responses."
-    "If you encounter values that do not make sense (examples include: null values or prices that are $0), you can ignore them."
-    "DO NOT USE VALUES THAT HAVE NO PRICE OR THEIR PRICE IS 0$. DO NOT EVEN INCLUDE IT IN YOUR RESPONSE."
+    "Make your answers more in a bullet point format. "
 )
 
 human = (
@@ -74,7 +76,6 @@ conn.close()
 
 # Session memory
 conversation_history = []
-
 # Function to sanitize metadata
 def sanitize_metadata(metadata):
     """Recursively sanitize metadata by replacing invalid JSON values."""
@@ -99,6 +100,7 @@ def chat_endpoint():
     user_input = data.get('message', '').strip()
     if not user_input:
         return jsonify({'error': 'No message provided.'}), 400
+
     try:
         # Determine if the user query is a follow-up or a new query
         is_follow_up = "follow-up" in user_input.lower() or (len(conversation_history) > 0 and not user_input.lower().startswith(('new', 'reset', 'start over')))
@@ -113,37 +115,44 @@ def chat_endpoint():
             )
             enriched_user_input = f"{session_context}\nUser: {user_input}"
 
-        # Generate SQL query
         sql_query = generate_sql_from_input(enriched_user_input, sqlChat)
-        print("Query is: ", sql_query.content)
 
-        # Execute SQL query on the database
-        conn = sqlite3.connect('data.db')
-        filtered_df = pd.read_sql_query(sql_query.content, conn)
-        conn.close()
+        print("Query is: ", sql_query)
+    
+        try:
+            # Execute the SQL query to filter the dataframe
+            conn = sqlite3.connect('data.db')
+            filtered_df = pd.read_sql_query(sql_query.content, conn)
+            conn.close()
 
-        # Prepare vector store for similarity search
-        texts = filtered_df["description"].tolist()
-        metadata = filtered_df.drop(columns=["description"]).to_dict(orient="records")
-        if len(texts) > 0:
-            # Create vectorstore with texts and metadata
+            # Extract relevant columns for the vector store
+            texts = filtered_df["description"].tolist()
+            metadata = filtered_df.drop(columns=["description"]).to_dict(orient="records")
+            # Build the vector store from the filtered results
+            vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
+        except Exception as e:
+
+            # Fallback to using the whole dataset
+            texts = df["description"].tolist()
+            metadata = df.drop(columns=["description"]).to_dict(orient="records")
+
+            # Build the vector store from the entire dataset
             vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
 
-            # Perform similarity search (limit results to k=3)
-            enriched_query = enriched_user_input if is_follow_up else user_input
-            search_results = vectorstore.similarity_search(enriched_query, k=3)
 
-            # Extract metadata from the results
-            metadata_results = [sanitize_metadata(result.metadata) for result in search_results]
+        # Perform similarity search (limit results to k=3)
+        # Include session context in the similarity search to provide more context-aware results
+        enriched_query = enriched_user_input if is_follow_up else user_input
+        search_results = vectorstore.similarity_search(enriched_query, k=3)
 
-            # Format results for the assistant
-            formatted_results = "\n".join(
-                f"{i+1}. {result.page_content}"
-                for i, result in enumerate(search_results)
-            )
-        else:
-            formatted_results = "No relevant matches found."
-            metadata_results = []
+        # Extract metadata from the results
+        metadata_results = [sanitize_metadata(result.metadata) for result in search_results]
+
+        # Format results for the assistant
+        formatted_results = "\n".join(
+            f"{i+1}. {result.page_content}"
+            for i, result in enumerate(search_results)
+        )
 
         # Get response from the assistant
         response = chain.invoke({
@@ -166,7 +175,6 @@ def chat_endpoint():
         }
 
         return jsonify(response_data)
-
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
