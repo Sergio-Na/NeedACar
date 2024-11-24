@@ -124,10 +124,28 @@ const CarCarousel = ({ cars }) => {
                     Details
                   </Typography>
                   <Typography variant="body1">
+                    <strong>Exterior Color:</strong> {selectedCar.ExteriorColor}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Interior Color:</strong> {selectedCar.InteriorColor}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Transmission:</strong> {selectedCar.Transmission}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Fuel:</strong> {selectedCar.Fuel_Type}
+                  </Typography>
+                  <Typography variant="body1">
                     <strong>Type:</strong> {selectedCar.Type}
                   </Typography>
                   <Typography variant="body1">
                     <strong>Drivetrain:</strong> {selectedCar.Drivetrain}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>City MPG:</strong> {selectedCar.CityMPG}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Highway MPG:</strong> {selectedCar.HighwayMPG}
                   </Typography>
                   <Typography variant="body1">
                     <strong>Price:</strong> $

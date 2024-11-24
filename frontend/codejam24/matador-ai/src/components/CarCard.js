@@ -35,7 +35,7 @@ const CarCard = ({ car, position, onMoreClick }) => {
                 </Typography>
                 <div style={{ display: 'flex', padding: 5, justifyContent: 'space-evenly' }}>
                     <Chip label={car.Type} variant="outlined" />
-                    <Chip label={car.Drivetrain} variant="outlined" />
+                    <Chip label={car.Year} variant="outlined" />
                 </div>
                 <div
                     style={{
