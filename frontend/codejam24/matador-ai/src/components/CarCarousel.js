@@ -113,7 +113,7 @@ const CarCarousel = ({ cars }) => {
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <img
-                    src={selectedCar.ImageURL || '/car.jpeg'} // Use dynamic image if available
+                    src={selectedCar.Image_Link || '/car.jpeg'} // Use dynamic image if available
                     alt={`${selectedCar.Make} ${selectedCar.Model}`}
                     style={{ width: '100%', borderRadius: '8px' }}
                     loading="lazy"

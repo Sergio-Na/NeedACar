@@ -26,7 +26,7 @@ const CarCard = ({ car, position, onMoreClick }) => {
         }}>
             <CardMedia
                 sx={{ height: 140 }}
-                image={car.ImageURL || '/car.jpeg'} // Use dynamic image if available
+                image={car.Image_Link || '/car.jpeg'} // Use dynamic image if available
                 title={`${car.Make} ${car.Model}`}
             />
             <CardContent>
