@@ -6,13 +6,11 @@
 .carousel-container {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 300px;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    margin-top: 30px;
-    background-color: var(--carousel-background);
     border-radius: 10px;
     padding: 20px;
     box-sizing: border-box;
@@ -116,21 +114,6 @@
 
 .carousel-navigation .next {
     margin-right: 20px;
-}
-
-/* Interaction Hint */
-.carousel-container::after {
-    content: 'Swipe or click to explore cars';
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--carousel-hint-text);
-    background-color: var(--carousel-hint-bg);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    pointer-events: none;
 }
 
 /* Responsiveness */

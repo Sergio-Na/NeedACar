@@ -28,15 +28,18 @@ const CarCarousel = ({ cars }) => {
     [cars.length] // Dependency array
   );
   const dist = (key) => {
-    const diff = currentKey - key;
+    const diff = (key - currentKey + cars.length) % cars.length;
+
     if (diff === 0) {
-      return 'middle'
-    } else if (diff === -1) {
-      return 'right'
+      return 'middle';
     } else if (diff === 1) {
-      return 'left'
+      return 'right';
+    } else if (diff === cars.length - 1) {
+      return 'left';
+    } else {
+      return 'hidden';
     }
-  }
+  };
 
   const handleMoreClick = (car) => {
     setSelectedCar(car);
@@ -48,22 +51,21 @@ const CarCarousel = ({ cars }) => {
     setSelectedCar(null);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      handleSlide(true);
-    }, 7000); // 7 seconds interval
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [handleSlide]); // Added handleSlide to dependencies
-
   return (
     <><div className="carousel-container" role="region" aria-label="Car Recommendations Carousel" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingLeft: 20, paddingRight: 20 }}>
       {/* Previous Button */}
       <label
         htmlFor="prev"
         className="prev"
+        style={{
+          padding: 10,
+          borderRadius: '50%',
+          color: 'white',
+          backgroundColor: '#000000CC',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s, transform 0.3s',
+          pointerEvents: 'all'
+        }}
         aria-label="Previous Slide"
         onClick={() => handleSlide(false)}
       >
@@ -71,7 +73,7 @@ const CarCarousel = ({ cars }) => {
       </label>
 
       {/* Carousel Cards */}
-      <div className="cards" style={{ height: 350, display: 'flex', flexGrow: 1 }}>
+      <div className="cards" style={{ height: 350, display: 'flex', width: 600 }}>
         {cars.map((car, index) => <CarCard key={'car-' + index} car={car} position={dist(index)} onMoreClick={handleMoreClick} />)}
       </div>
 
@@ -79,6 +81,15 @@ const CarCarousel = ({ cars }) => {
       <label
         htmlFor="next"
         className="next"
+        style={{
+          padding: 10,
+          borderRadius: '50%',
+          color: 'white',
+          backgroundColor: '#000000CC',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s, transform 0.3s',
+          pointerEvents: 'all'
+        }}
         aria-label="Next Slide"
         onClick={() => handleSlide(true)}
       >
