@@ -196,11 +196,6 @@ const ChatBot = () => {
             <img src={logo} alt="Logo" className="header-logo glow-effect" />
           </div>
         </div>
-        <div className="chat-header-bar">
-          <h2 className="chat-title">
-            {currentConversation?.title || 'New Conversation'}
-          </h2>
-        </div>
         <div className="chatbot-messages-container">
           <ChatMessages messages={currentConversation?.messages || []} />
         </div>
