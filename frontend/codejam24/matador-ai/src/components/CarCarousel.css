@@ -118,20 +118,7 @@
     margin-right: 20px;
 }
 
-/* Interaction Hint */
-.carousel-container::after {
-    content: 'Swipe or click to explore cars';
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--carousel-hint-text);
-    background-color: var(--carousel-hint-bg);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    pointer-events: none;
-}
+
 
 /* Responsiveness */
 @media (max-width: 768px) {

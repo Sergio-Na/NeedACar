@@ -2,9 +2,7 @@
 import React from 'react';
 import { Card } from '@mui/material';
 import Markdown from 'markdown-to-jsx';
-import CarCard from './CarCard';
 import CarCarousel from './CarCarousel';
-import Swiper from './Swiper';
 import './ChatBubble.css';
 import botAvatar from '../components/download.png'; // Ensure botAvatar.png is in src/assets/
 
@@ -29,7 +27,7 @@ const ChatBubble = ({ sender, text, image, actions, cars }) => {
       >
         {text && (
           <div className="chat-text">
-            <Markdown>{text}</Markdown>
+            <Markdown style={{ fontSize: 14 }}>{text}</Markdown>
           </div>
         )}
         {actions &&
@@ -42,8 +40,7 @@ const ChatBubble = ({ sender, text, image, actions, cars }) => {
               {action.label}
             </button>
           ))}
-        {/* <CarCarousel cars={cars} /> */}
-        <Swiper cars={cars} />
+        <CarCarousel cars={cars} />
       </Card>
     </div>
   );

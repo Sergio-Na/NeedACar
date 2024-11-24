@@ -8,28 +8,28 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 
-const CarCard = ({ car }) => {
+const CarCard = ({ car, position }) => {
     const formattedPrice = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 0,
     })
     return (
-        <Card sx={{ maxWidth: 345, minWidth: 250 }} style={{ padding: 10, width: 250, height: 375 }}>
+        <Card sx={{ maxWidth: 345, minWidth: 250 }} style={{
+            padding: 5, width: 250, height: 290,
+            transform: position === 'middle' ? "scale(1)" : position === 'left' ? "scale(0.8) translate(80%)" : "scale(0.8) translate(-80%)",
+            zIndex: position === 'middle' ? 3 : 0,
+            opacity: position === 'middle' ? 1 : 0.8,
+            transition: "transform 0.3s ease", position: 'absolute',
+        }}>
             <CardMedia
                 sx={{ height: 140 }}
                 image="/car.jpeg"
                 title="green iguana"
             />
             <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
+                <Typography gutterBottom component="div">
                     {car.Make} {car.Model}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Year: {'\t'}{car.Year}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Type: {'\t'}{car.Type}
                 </Typography>
                 <div style={{ display: 'flex', padding: 5, justifyContent: 'space-evenly' }}>
                     <Chip label={car.Type} variant="outlined" />
