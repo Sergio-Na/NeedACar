@@ -3,6 +3,9 @@ import './Swiper.css'
 
 
 const Swiper = ({ cars }) => {
+    if (!cars || cars.length < 1) {
+        return <></>
+    }
 
     return (
         <div class="swiper-container two">
