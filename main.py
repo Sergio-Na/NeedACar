@@ -13,6 +13,7 @@ import textwrap
 from inputSql import generate_sql_from_input
 import pandas as pd
 import sqlite3
+from flask import Flask, request, jsonify
 
 # Ensure parallelism is disabled for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -49,7 +50,8 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 system = (
     "You are a helpful assistant with access to a database of vehicle descriptions. "
     "Engage in a conversational manner, keeping track of the user's queries and your responses within the current session. "
-    "When answering follow-up questions, refer to previous exchanges to provide relevant context."
+    "When answering follow-up questions, refer to previous exchanges to provide relevant context. "
+    "If a new question is unrelated to previous conversations, disregard previous context. Always be clear and concise in your responses."
 )
 
 human = (
@@ -65,10 +67,10 @@ prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)]
 # Define the chain by combining the prompt with the chat model
 chain = prompt | chat
 
+# Load the data
 df = pd.read_csv('vehicles.csv')
-conn = sqlite3.connect('data.db')
+conn = sqlite3.connect(':memory:')
 df.to_sql('cars', conn, index=False, if_exists='replace')
-conn.close()
 # Session memory
 conversation_history = []
 
@@ -79,21 +81,34 @@ def chat_endpoint():
     user_input = data.get('message', '').strip()
     if not user_input:
         return jsonify({'error': 'No message provided.'}), 400
+
     try:
-        sql_query = generate_sql_from_input(user_input, sqlChat)
+        # Determine if the user query is a follow-up or a new query
+        is_follow_up = "follow-up" in user_input.lower() or (len(conversation_history) > 0 and not user_input.lower().startswith(('new', 'reset', 'start over')))
+        session_context = ""
+        enriched_user_input = user_input
+
+        if is_follow_up:
+            # Include the last 6 queries and responses for context
+            session_context = "\n".join(
+                f"User: {entry['query']}\nAssistant: {entry['response']}"
+                for entry in conversation_history[-6:]
+            )
+            enriched_user_input = f"{session_context}\nUser: {user_input}"
+
+        sql_query = generate_sql_from_input(enriched_user_input, sqlChat)
+
         print("Query is: ", sql_query)
 
-        conn = sqlite3.connect('data.db')
-
         filtered_df = pd.read_sql_query(sql_query.content, conn)
-        conn.close()
         texts = filtered_df["description"].tolist()
         metadata = filtered_df.drop(columns=["description"]).to_dict(orient="records")
         vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
 
         # Perform similarity search (limit results to k=3)
-        search_results = vectorstore.similarity_search(user_input, k=3)
-        search_results = vectorstore.similarity_search(user_input, k=3)
+        # Include session context in the similarity search to provide more context-aware results
+        enriched_query = enriched_user_input if is_follow_up else user_input
+        search_results = vectorstore.similarity_search(enriched_query, k=3)
 
         # Format results for the assistant
         formatted_results = "\n".join(
@@ -101,15 +116,9 @@ def chat_endpoint():
             for i, result in enumerate(search_results)
         )
 
-        # Include previous queries and responses for context
-        session_context = "\n".join(
-            f"User: {entry['query']}\nAssistant: {entry['response']}"
-            for entry in conversation_history
-        )
-
         # Get response from the assistant
         response = chain.invoke({
-            "query": f"{session_context}\nUser: {user_input}",
+            "query": enriched_user_input,
             "results": formatted_results
         })
 
@@ -119,14 +128,19 @@ def chat_endpoint():
             "response": response.content
         })
 
-        print(f"\nAssistant: {response.content}")
+        return jsonify({"response": response.content})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        return jsonify({'response': response.content})
-
+@app.route('/api/clear_context', methods=['POST'])
+def clear_context():
+    try:
+        # Clear the conversation history
+        conversation_history.clear()
+        return jsonify({"message": "Conversation context cleared."}), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True)
