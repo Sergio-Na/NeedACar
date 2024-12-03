@@ -11,40 +11,32 @@ from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 import sqlite3
 from inputSql import generate_sql_from_input
-import numpy as np  # For NaN checking
+import numpy as np
 
-# Ensure parallelism is disabled for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all domains on all routes
+CORS(app)
 
-# Load FAISS vector store with the updated embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 vectorstore = FAISS.load_local("faiss_vehicle_index", embeddings, allow_dangerous_deserialization=True)
 
-# Initialize Groq chat model
 chat = ChatGroq(
     temperature=0,
     groq_api_key=os.getenv("GROQ_API_KEY"),
     model_name="llama-3.2-90b-vision-preview"
 )
 
-# Initialize Groq chat model for SQL query gen
 sqlChat = ChatGroq(
     temperature=0,
     groq_api_key=os.getenv("GROQ_API_KEY"),
     model_name="llama-3.2-90b-vision-preview",
 )
 
-# Initialize the embedding model
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# Define system and human messages
 system = (
     "You are a helpful assistant with access to a database of vehicle descriptions. "
     "Engage in a conversational manner, keeping track of the user's queries and your responses within the current session. "
@@ -62,21 +54,17 @@ human = (
     "Use the matches to provide a conversational and context-aware response to the user."
 )
 
-# Create a prompt template
 prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
 
-# Define the chain by combining the prompt with the chat model
 chain = prompt | chat
 
-# Load the data
 df = pd.read_csv('vehicles.csv')
 conn = sqlite3.connect('data.db')
 df.to_sql('cars', conn, index=False, if_exists='replace')
 conn.close()
 
-# Session memory
 conversation_history = []
-# Function to sanitize metadata
+
 def sanitize_metadata(metadata):
     """Recursively sanitize metadata by replacing invalid JSON values."""
     if isinstance(metadata, list):
@@ -86,7 +74,7 @@ def sanitize_metadata(metadata):
             key: sanitize_metadata(value) for key, value in metadata.items()
         }
     elif isinstance(metadata, (float, int)) and np.isnan(metadata):
-        return None  # Replace NaN with None (null in JSON)
+        return None 
     return metadata
 
 @app.route('/api/chat', methods=['DELETE'])
@@ -102,13 +90,11 @@ def chat_endpoint():
         return jsonify({'error': 'No message provided.'}), 400
 
     try:
-        # Determine if the user query is a follow-up or a new query
         is_follow_up = "follow-up" in user_input.lower() or (len(conversation_history) > 0 and not user_input.lower().startswith(('new', 'reset', 'start over')))
         session_context = ""
         enriched_user_input = user_input
 
         if is_follow_up:
-            # Include the last 6 queries and responses for context
             session_context = "\n".join(
                 f"User: {entry['query']}\nAssistant: {entry['response']}"
                 for entry in conversation_history[-6:]
@@ -120,47 +106,36 @@ def chat_endpoint():
         print("Query is: ", sql_query)
     
         try:
-            # Execute the SQL query to filter the dataframe
             conn = sqlite3.connect('data.db')
             filtered_df = pd.read_sql_query(sql_query.content, conn)
             conn.close()
 
-            # Extract relevant columns for the vector store
             texts = filtered_df["description"].tolist()
             metadata = filtered_df.drop(columns=["description"]).to_dict(orient="records")
-            # Build the vector store from the filtered results
             vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
         except Exception as e:
 
-            # Fallback to using the whole dataset
             texts = df["description"].tolist()
             metadata = df.drop(columns=["description"]).to_dict(orient="records")
 
-            # Build the vector store from the entire dataset
             vectorstore = FAISS.from_texts(texts, embeddings, metadatas=metadata)
 
 
-        # Perform similarity search (limit results to k=3)
-        # Include session context in the similarity search to provide more context-aware results
         enriched_query = enriched_user_input if is_follow_up else user_input
         search_results = vectorstore.similarity_search(enriched_query, k=3)
 
-        # Extract metadata from the results
         metadata_results = [sanitize_metadata(result.metadata) for result in search_results]
 
-        # Format results for the assistant
         formatted_results = "\n".join(
             f"{i+1}. {result.page_content}"
             for i, result in enumerate(search_results)
         )
 
-        # Get response from the assistant
         response = chain.invoke({
             "query": enriched_user_input,
             "results": formatted_results
         })
 
-        # Save the current query and response to session history
         conversation_history.append({
             "query": user_input,
             "response": response.content
@@ -168,7 +143,6 @@ def chat_endpoint():
 
         print(f"\nAssistant: {response.content}")
 
-        # Return response and sanitized metadata in separate keys
         response_data = {
             'response': response.content,
             'metadata': metadata_results

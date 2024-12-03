@@ -7,7 +7,6 @@ import json
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# Load environment variables
 load_dotenv()
 
 COLUMNS = ['Type', 'Stock', 'VIN', 'Year', 'Make', 'Model', 'Body', 'ModelNumber',
@@ -31,7 +30,7 @@ possible_values = {"Type": ["Used", "New"], "Year": {"min": 2009.0, "max": 2024.
 def determine_possible_values(quant_columns):
         possible_values = {key:None for key in quant_columns.keys()}
 
-        csv_file = "vehicles.csv"  # Replace with your CSV file path
+        csv_file = "vehicles.csv"
         df = pd.read_csv(csv_file, usecols=quant_columns.keys(), dtype=quant_columns)
 
         for col, type in quant_columns.items():
@@ -58,7 +57,6 @@ examples = [
     }
 ]
 
-# Define example template
 example_template = PromptTemplate(
     input_variables=["criteria", "sql"],
     template="Criteria: {criteria}\nSQL: {sql}"

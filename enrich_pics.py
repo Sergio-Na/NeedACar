@@ -3,13 +3,11 @@ import requests
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
 load_dotenv()
 
-# Load the CSV file
-input_csv = "vehicles.csv"  # Replace with your file path
+input_csv = "vehicles.csv"
 api_url = "https://api.bing.microsoft.com/v7.0/images/search"
-subscription_key = os.getenv("BING_API_KEY")  # Replace with your actual Bing API key
+subscription_key = os.getenv("BING_API_KEY") 
 
 def fetch_car_image(make, model, year):
     """Fetch a car image URL from Bing Image Search API based on make, model, and year."""
@@ -29,10 +27,8 @@ def fetch_car_image(make, model, year):
 
 def process_csv(input_csv):
     """Process the CSV to add car image URLs."""
-    # Read the CSV
     df = pd.read_csv(input_csv)
 
-    # Add a new column for image links
     links = []
     for index, row in df.iterrows():
         make, model, year = row["Make"], row["Model"], row["Year"]
@@ -46,9 +42,7 @@ def process_csv(input_csv):
 
     df["Image_Link"] = links
     
-    # Save the updated CSV
     df.to_csv(input_csv, index=False)
     print(f"Updated CSV saved to {input_csv}")
 
-# Run the processing
 process_csv(input_csv)
